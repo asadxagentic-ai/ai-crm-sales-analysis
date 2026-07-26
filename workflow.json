@@ -1,0 +1,543 @@
+{
+  "name": "CRM workflow",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -496,
+        16
+      ],
+      "id": "2eebb5c0-04d2-4b54-9beb-09651e05b47e",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "YOUR_VALUE_HERE",
+          "mode": "list",
+          "cachedResultName": "Zoom Meeting Summary.pdf",
+          "cachedResultUrl": "https://drive.google.com/file/d/1hJF9BEv7MGs-oANjiSjNzG7-hmrVHGgt/view?usp=drivesdk"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        -288,
+        16
+      ],
+      "id": "d461e534-aff4-4f65-902e-80013f456d61",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "REPLACE_WITH_YOUR_CREDENTIAL_NAME"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -96,
+        16
+      ],
+      "id": "YOUR_ID_HERE",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=# Role\n\nYou are an expert sales analyst specializing in evaluating sales call transcripts. Analyze the transcript to extract actionable insights, identify business opportunities, assess the prospect, evaluate the salesperson's performance, and estimate the likelihood of closing the deal.\n\n# Transcript\n\n{{ $json.text }}\n\n# Task\n\nAnalyze the transcript and return ONLY a valid JSON object that exactly matches the required schema.\n\nDetermine the following:\n\n1. persona\n- Describe the prospect's role, goals, interests, pain points, and business context.\n\n2. red_flags\n- List any objections, concerns, risks, hesitations, budget issues, authority limitations, timeline concerns, or competitor mentions.\n\n3. potential_opportunities\n- Identify upselling, cross-selling, automation opportunities, unmet needs, or additional business opportunities.\n\n4. qualification_score\n- Return a number from 1 to 10 representing how qualified this lead is.\n\n5. deal_transcript_analysis\n- Provide a concise summary of the conversation including important discoveries, next steps, buying signals, and overall analysis.\n\n6. deal_name\n- Create a short CRM-friendly deal name.\n\n7. deal_probability\n- Return ONLY a number between 0 and 100.\n- Do NOT include the % symbol.\n- Example: 75\n\n8. priority\n- Return only one of:\nHigh\nMedium\nLow\n\n9. sales_call_feedback\n- Evaluate the salesperson's performance including strengths, weaknesses, missed opportunities, and recommendations.\n\n# Rules\n\nReturn ONLY valid JSON.\n\nDo NOT include markdown.\n\nDo NOT include explanations.\n\nDo NOT include ```json.\n\nDo NOT include any text before or after the JSON.\n\nAll fields are required.\n\nIf information is missing, infer the most reasonable answer from the conversation.\n\nqualification_score must be a number.\n\ndeal_probability must be a number.\n\npriority must be exactly one of:\nHigh\nMedium\nLow\n\nReturn JSON in this exact structure:\n\n{\n  \"persona\": \"\",\n  \"red_flags\": \"\",\n  \"potential_opportunities\": \"\",\n  \"qualification_score\": 0,\n  \"deal_transcript_analysis\": \"\",\n  \"deal_name\": \"\",\n  \"deal_probability\": 0,\n  \"priority\": \"\",\n  \"sales_call_feedback\": \"\"\n}",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        224,
+        128
+      ],
+      "id": "e747c841-92cc-43da-99a8-dac6118f8443",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"persona\": \"VP of Sales at Acme Corp looking to automate outreach\",\n  \"red_flags\": \"Budget concerns; needs approval from CFO\",\n  \"potential_opportunities\": \"Upsell analytics module; cross-sell CRM integration\",\n  \"qualification_score\": 8,\n  \"deal_transcript_analysis\": \"Prospect showed strong buying signals...\",\n  \"deal_name\": \"Acme Corp - Sales Automation Q1\",\n  \"deal_probability\": 75,\n  \"priority\": \"High\",\n  \"sales_call_feedback\": \"Salesperson handled objections well but missed a chance to...\"\n}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        368,
+        320
+      ],
+      "id": "YOUR_ID_HERE",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "27320c30-f9bc-456e-a794-30a2a47ac746",
+              "name": "profile",
+              "value": "={{ $json.output.persona }}",
+              "type": "string"
+            },
+            {
+              "id": "YOUR_ID_HERE",
+              "name": "red_flags",
+              "value": "={{ $json.output.red_flags }}",
+              "type": "string"
+            },
+            {
+              "id": "YOUR_ID_HERE",
+              "name": "potential_opportunities",
+              "value": "={{ $json.output.potential_opportunities }}",
+              "type": "string"
+            },
+            {
+              "id": "4032b4e9-0a4a-41d8-afbd-28d237bdfb1e",
+              "name": "qualification_score",
+              "value": "={{ $json.output.qualification_score }}",
+              "type": "number"
+            },
+            {
+              "id": "3e4184da-3c74-4246-9fa3-be6a7f84be67",
+              "name": "deal_transcript_analysis",
+              "value": "={{ $json.output.deal_transcript_analysis }}",
+              "type": "string"
+            },
+            {
+              "id": "YOUR_ID_HERE",
+              "name": "deal_name",
+              "value": "={{ $json.output.deal_name }}",
+              "type": "string"
+            },
+            {
+              "id": "YOUR_ID_HERE",
+              "name": "deal_probability",
+              "value": "={{ $json.output.deal_probability }}",
+              "type": "number"
+            },
+            {
+              "id": "YOUR_ID_HERE",
+              "name": "priority",
+              "value": "={{ $json.output.priority }}",
+              "type": "string"
+            },
+            {
+              "id": "YOUR_ID_HERE",
+              "name": "sales_call_feedback",
+              "value": "={{ $json.output.sales_call_feedback }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        576,
+        128
+      ],
+      "id": "c3f9e67a-69bd-4565-b50b-55ef5ee54156",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "403a9ebf-acf5-4d90-bff8-b43ef938d31e",
+              "name": "Name",
+              "value": "={{ $json.content }}",
+              "type": "string"
+            },
+            {
+              "id": "f9a226e3-22d6-4256-9e47-c405f244dd4c",
+              "name": "Email",
+              "value": "={{ $json.content }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        576,
+        -128
+      ],
+      "id": "fd196c34-c437-4272-90c1-4ad87da1f4a6",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineAll",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        864,
+        -16
+      ],
+      "id": "108eea83-9b3a-4278-9009-3afeea2d2996",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "authentication": "YOUR_AUTHENTICATION_HERE",
+        "email": "=sarah.mitchell@brightpathmarketing.com",
+        "additionalFields": {
+          "customPropertiesUi": {
+            "customPropertiesValues": [
+              {
+                "property": "potential_opportunities",
+                "value": "={{ $json.potential_opportunities }}"
+              },
+              {
+                "property": "profile_analysis",
+                "value": "={{ $json.profile }}"
+              },
+              {
+                "property": "sales_call_feedback",
+                "value": "={{ $json.sales_call_feedback }}"
+              },
+              {
+                "property": "quaification_score",
+                "value": "={{ $json.qualification_score }}"
+              }
+            ]
+          }
+        },
+        "options": {
+          "resolveData": true
+        }
+      },
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2.2,
+      "position": [
+        1168,
+        -176
+      ],
+      "id": "16ed3f45-e991-4da0-b5b0-65f269cac3de",
+      "name": "Create or update a contact",
+      "credentials": {
+        "hubspotOAuth2Api": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "REPLACE_WITH_YOUR_CREDENTIAL_NAME"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "YOUR_AUTHENTICATION_HERE",
+        "resource": "deal",
+        "stage": "decisionmakerboughtin",
+        "additionalFields": {
+          "customPropertiesUi": {
+            "customPropertiesValues": [
+              {
+                "property": "deal_probability",
+                "value": "={{ $json.deal_probability }}"
+              },
+              {
+                "property": "priority__reasons",
+                "value": "={{ $json.priority }}"
+              }
+            ]
+          },
+          "description": "={{ $json.deal_transcript_analysis }}",
+          "dealName": "={{ $json.deal_name }}",
+          "dealOwner": {
+            "__rl": true,
+            "mode": "list",
+            "value": ""
+          }
+        }
+      },
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2.2,
+      "position": [
+        1168,
+        112
+      ],
+      "id": "8284777c-9cec-4c84-b362-64e4fc3d9bc6",
+      "name": "Create a deal",
+      "credentials": {
+        "hubspotOAuth2Api": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "REPLACE_WITH_YOUR_CREDENTIAL_NAME"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# CRM\n",
+        "height": 528,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1104,
+        -256
+      ],
+      "typeVersion": 1,
+      "id": "YOUR_ID_HERE",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "model": "qwen-max",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAlibabaCloud",
+      "typeVersion": 1,
+      "position": [
+        224,
+        304
+      ],
+      "id": "59b1daf3-5be2-4cd9-b35d-90340f053bae",
+      "name": "Qwen Cloud Chat Model",
+      "credentials": {
+        "alibabaCloudApi": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "REPLACE_WITH_YOUR_CREDENTIAL_NAME"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "qwen3.7-plus",
+          "mode": "list",
+          "cachedResultName": "qwen3.7-plus"
+        },
+        "messages": {
+          "messageValues": [
+            {
+              "content": "=You are an information extraction assistant.\n\nExtract ONLY the client's name and email address from the transcript below.\n\nReturn ONLY valid JSON.\n\nRules:\n- Do not include markdown.\n- Do not explain anything.\n- Do not add extra text.\n- If a value is missing, return an empty string.\n- Name and email must be separate fields.\n\nOutput format:\n\n{\n  \"name\": \"\",\n  \"email\": \"\"\n}\n\nTranscript:\n{{ $json.text }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.alibabaCloud",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        -128
+      ],
+      "id": "ceeb5157-c95d-4328-82b1-9ab4be2f5b49",
+      "name": "Message a model1",
+      "credentials": {
+        "alibabaCloudApi": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "REPLACE_WITH_YOUR_CREDENTIAL_NAME"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=Extract the name and email of the client from the following transcript:\n\n{{ $json.text }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        224,
+        -368
+      ],
+      "id": "494764a8-5be0-4017-b5bb-7d445d0f59e2",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "REPLACE_WITH_YOUR_CREDENTIAL_ID",
+          "name": "REPLACE_WITH_YOUR_CREDENTIAL_NAME"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "# if you have openai Key\n",
+        "height": 272,
+        "width": 480,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        112,
+        -448
+      ],
+      "typeVersion": 1,
+      "id": "e5f980da-81aa-4914-ba9b-0e19c670e0ec",
+      "name": "Sticky Note1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Message a model1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Create or update a contact",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create a deal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Qwen Cloud Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "7348e0e3-81ca-40c8-a519-9f77b3b7549d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "YOUR_INSTANCEID_HERE"
+  },
+  "nodeGroups": [],
+  "id": "G789f82gQwoXaiFO",
+  "tags": []
+}
